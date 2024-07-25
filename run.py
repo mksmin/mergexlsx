@@ -41,28 +41,27 @@ for i in files:
     else:
         new_sheet_name = sheet_name
 
-    master_file = pd.read_excel(path_to_write,
-                                sheet_name=new_sheet_name, skiprows=2)  # Открываем нужный лист в Мастерфайле
-    current_id = []
-    for mf in master_file['ID']: # Собираем актуальные ID
-        current_id.append(mf)
-    print(f'АКТУАЛЬНЫЕ ID: {current_id}')
-
-    with pd.ExcelFile(path_new) as xls:
-        value_1 = pd.read_excel(xls, usecols=needed_columns, index_col=0) # Выгружаем все значения из нужных столбцов
-        col_index_start = len(value_1.index)  # Считаем сколько значений было до удаления
-
-        for value in value_1.index:
-            if value in current_id:
-                value_1 = value_1.drop(value)  # Если ID есть в Мастерфайле, то удаляем
-        else:
-            col_index_end = len(value_1.index)
-            print(f'ПРОВЕРИЛ ВСЕ СОВПАДЕНИЯ ИНДЕКСА.'
-                  f'\n Было {col_index_start} // стало {col_index_end}'
-                  f'\n Удалено {col_index_start - col_index_end}')
-
-    # Добавляем все значения на нужный нам лист
     if new_sheet_name in sheets_actual:
+        master_file = pd.read_excel(path_to_write,
+                                    sheet_name=new_sheet_name, skiprows=2)  # Открываем нужный лист в Мастерфайле
+        current_id = []
+        for mf in master_file['ID']: # Собираем актуальные ID
+            current_id.append(mf)
+        print(f'АКТУАЛЬНЫЕ ID: {current_id}')
+
+        with pd.ExcelFile(path_new) as xls:
+            value_1 = pd.read_excel(xls, usecols=needed_columns, index_col=0) # Выгружаем все значения из нужных столбцов
+            col_index_start = len(value_1.index)  # Считаем сколько значений было до удаления
+
+            for value in value_1.index:
+                if value in current_id:
+                    value_1 = value_1.drop(value)  # Если ID есть в Мастерфайле, то удаляем
+            else:
+                col_index_end = len(value_1.index)
+                print(f'ПРОВЕРИЛ ВСЕ СОВПАДЕНИЯ ИНДЕКСА.'
+                      f'\n Было {col_index_start} // стало {col_index_end}'
+                      f'\n Удалено {col_index_start - col_index_end}')
+
         list_col = pd.read_excel(path_to_write,
                                  sheet_name=new_sheet_name)
         col_start = list_col.shape[0] + 2
@@ -70,8 +69,23 @@ for i in files:
         with pd.ExcelWriter(path_to_write, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writers:
             value_1.to_excel(writers, sheet_name=new_sheet_name, startrow=col_start, startcol=3, header=False)
     else:
-        with pd.ExcelWriter(path_to_write, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writers:
-            value_1.to_excel(writers, sheet_name=new_sheet_name, header=False)
+        with pd.ExcelFile(path_new) as xls:
+            value_1 = pd.read_excel(xls, usecols=needed_columns, index_col=0)
+        print(f'В мастерфайле нет листа с названием: {new_sheet_name}')
+        create_sheet = input('Создать такой лист и загрузить в него данные? (да/нет): ').lower()
+
+        continue_operation = False
+        while not continue_operation:
+            if create_sheet == 'да':
+                with pd.ExcelWriter(path_to_write, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writers:
+                    value_1.to_excel(writers, sheet_name=new_sheet_name,  header=False)
+                continue_operation = True
+            elif create_sheet == 'нет':
+                print(f'ОПЕРАЦИЯ ОТМЕНЕНА')
+                continue_operation = True
+            else:
+                create_sheet = input('Создать такой лист и загрузить в него данные? (да/нет): ').lower()
+
 
     print(f'ЗАКОНЧИЛ: {i}')
     print(' ')
