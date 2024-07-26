@@ -44,9 +44,7 @@ for i in files:
     if new_sheet_name in sheets_actual:
         master_file = pd.read_excel(path_to_write,
                                     sheet_name=new_sheet_name, skiprows=2)  # Открываем нужный лист в Мастерфайле
-        current_id = []
-        for mf in master_file['ID']: # Собираем актуальные ID
-            current_id.append(mf)
+        current_id = [mf for mf in master_file['ID']] # Собираем актуальные ID
         print(f'АКТУАЛЬНЫЕ ID: {current_id}')
 
         with pd.ExcelFile(path_new) as xls:
