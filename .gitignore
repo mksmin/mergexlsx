@@ -4,4 +4,5 @@ masterlist.xlsx
 .venv
 .idea
 .env
-
+/FilesXlsx
+check.py
